@@ -14,6 +14,7 @@ Components
 * 6 DOF MPU6050 (GY521) (Accel + Gyro)
 * L298N Motor Driver
 * 2 x 12V 122rpm DC motors + 80mm wheels
+* 3 potentiometers for PID tunings
 
 Photo
 -----
