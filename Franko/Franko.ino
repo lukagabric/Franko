@@ -58,7 +58,7 @@ int IN4 = 7;
 int ENB = 6;
 
 
-LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 1, 1);
+LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 0.7, 1);
 
 
 //timer
