@@ -227,7 +227,7 @@ void setPIDTuningValues()
     
     if (kp != prevKp || ki != prevKi || kd != prevKd)
     {
-//        Serial.print(kp);Serial.print(", ");Serial.print(ki);Serial.print(", ");Serial.println(kd);
+        Serial.print(kp);Serial.print(", ");Serial.print(ki);Serial.print(", ");Serial.println(kd);
 
         pid.SetTunings(kp, ki, kd);
         prevKp = kp; prevKi = ki; prevKd = kd;
