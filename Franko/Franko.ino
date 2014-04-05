@@ -10,6 +10,7 @@
 
 
 #define LOG_INPUT 0
+#define LOG_PID_CONSTANTS 0
 
 
 //MPU
@@ -42,9 +43,12 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 double kp , ki, kd;
 double prevKp, prevKi, prevKd;
-double setpoint = 174.14, input, output;
+double setpoint = 174.21;
+//double setpoint = 174.14;
+double input, output;
 
-PID pid(&input, &output, &setpoint, 0, 0, 0, DIRECT);
+//PID pid(&input, &output, &setpoint, 0, 0, 0, DIRECT);
+PID pid(&input, &output, &setpoint, 70, 240, 1.9, DIRECT);
 
 
 //MOTOR CONTROLLER
@@ -158,7 +162,7 @@ void loop()
         
         pid.Compute();
         motorController.move(output);
-        
+/*        
         unsigned long currentMillis = millis();
 
         if (currentMillis - time1Hz >= 1000)
@@ -166,6 +170,7 @@ void loop()
             loopAt1Hz();
             time1Hz = currentMillis;
         }
+ */
     }
 
     // reset interrupt flag and get INT_STATUS byte
@@ -227,7 +232,9 @@ void setPIDTuningValues()
     
     if (kp != prevKp || ki != prevKi || kd != prevKd)
     {
+#if LOG_PID_CONSTANTS
         Serial.print(kp);Serial.print(", ");Serial.print(ki);Serial.print(", ");Serial.println(kd);
+#endif
 
         pid.SetTunings(kp, ki, kd);
         prevKp = kp; prevKi = ki; prevKd = kd;
