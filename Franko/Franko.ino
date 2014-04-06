@@ -11,6 +11,7 @@
 
 #define LOG_INPUT 0
 #define LOG_PID_CONSTANTS 0
+#define MANUAL_TUNING 0
 
 
 //MPU
@@ -43,12 +44,14 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 
 double kp , ki, kd;
 double prevKp, prevKi, prevKd;
-double setpoint = 174.21;
-//double setpoint = 174.14;
+double setpoint = 174.29;
 double input, output;
 
-//PID pid(&input, &output, &setpoint, 0, 0, 0, DIRECT);
-PID pid(&input, &output, &setpoint, 70, 240, 1.9, DIRECT);
+#if MANUAL_TUNING
+  PID pid(&input, &output, &setpoint, 0, 0, 0, DIRECT);
+#else
+  PID pid(&input, &output, &setpoint, 70, 240, 1.9, DIRECT);
+#endif
 
 
 //MOTOR CONTROLLER
@@ -162,7 +165,8 @@ void loop()
         
         pid.Compute();
         motorController.move(output);
-/*        
+        
+#if MANUAL_TUNING
         unsigned long currentMillis = millis();
 
         if (currentMillis - time1Hz >= 1000)
@@ -170,7 +174,7 @@ void loop()
             loopAt1Hz();
             time1Hz = currentMillis;
         }
- */
+#endif
     }
 
     // reset interrupt flag and get INT_STATUS byte
