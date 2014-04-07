@@ -10,16 +10,15 @@
 
 
 #define LOG_INPUT 0
-#define LOG_PID_CONSTANTS 0
 #define MANUAL_TUNING 0
+#define LOG_PID_CONSTANTS 0 //MANUAL_TUNING must be 1
 
+#define MIN_ABS_SPEED 30
 
 //MPU
 
 
 MPU6050 mpu;
-
-bool blinkState = false;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -31,19 +30,17 @@ uint8_t fifoBuffer[64]; // FIFO storage buffer
 
 // orientation/motion vars
 Quaternion q;           // [w, x, y, z]         quaternion container
-VectorInt16 aa;         // [x, y, z]            accel sensor measurements
-VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
-VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
-float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 
 //PID
 
 
-double kp , ki, kd;
-double prevKp, prevKi, prevKd;
+#if MANUAL_TUNING
+  double kp , ki, kd;
+  double prevKp, prevKi, prevKd;
+#endif
 double setpoint = 174.29;
 double input, output;
 
@@ -65,7 +62,7 @@ int IN4 = 7;
 int ENB = 6;
 
 
-LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 0.7, 1);
+LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
 
 
 //timer
@@ -164,7 +161,7 @@ void loop()
         //no mpu data - performing PID calculations and output to motors
         
         pid.Compute();
-        motorController.move(output);
+        motorController.move(output, MIN_ABS_SPEED);
         
 #if MANUAL_TUNING
         unsigned long currentMillis = millis();
@@ -229,7 +226,7 @@ void loopAt1Hz()
 
 //PID Tuning (3 potentiometers)
 
-
+#if MANUAL_TUNING
 void setPIDTuningValues()
 {
     readPIDTuningValues();
@@ -256,3 +253,4 @@ void readPIDTuningValues()
     ki = map(potKi, 0, 1023, 0, 100000) / 100.0; //0 - 1000
     kd = map(potKd, 0, 1023, 0, 500) / 100.0; //0 - 5
 }
+#endif
