@@ -12,6 +12,7 @@
 #define LOG_INPUT 0
 #define MANUAL_TUNING 0
 #define LOG_PID_CONSTANTS 0 //MANUAL_TUNING must be 1
+#define MOVE_BACK_FORTH 0
 
 #define MIN_ABS_SPEED 30
 
@@ -41,8 +42,11 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
   double kp , ki, kd;
   double prevKp, prevKi, prevKd;
 #endif
-double setpoint = 174.29;
+double originalSetpoint = 174.29;
+double setpoint = originalSetpoint;
+double movingAngleOffset = 0.3;
 double input, output;
+int moveState=0; //0 = balance; 1 = back; 2 = forth
 
 #if MANUAL_TUNING
   PID pid(&input, &output, &setpoint, 0, 0, 0, DIRECT);
@@ -65,10 +69,11 @@ int ENB = 6;
 LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
 
 
-//timer
+//timers
 
 
 long time1Hz = 0;
+long time5Hz = 0;
 
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
@@ -163,7 +168,6 @@ void loop()
         pid.Compute();
         motorController.move(output, MIN_ABS_SPEED);
         
-#if MANUAL_TUNING
         unsigned long currentMillis = millis();
 
         if (currentMillis - time1Hz >= 1000)
@@ -171,7 +175,12 @@ void loop()
             loopAt1Hz();
             time1Hz = currentMillis;
         }
-#endif
+        
+        if (currentMillis - time5Hz >= 5000)
+        {
+            loopAt5Hz();
+            time5Hz = currentMillis;
+        }
     }
 
     // reset interrupt flag and get INT_STATUS byte
@@ -220,7 +229,34 @@ void loop()
 
 void loopAt1Hz()
 {
+#if MANUAL_TUNING
     setPIDTuningValues();
+#endif
+}
+
+
+void loopAt5Hz()
+{
+    #if MOVE_BACK_FORTH
+        moveBackForth();
+    #endif
+}
+
+
+//move back and forth
+
+
+void moveBackForth()
+{
+    moveState++;
+    if (moveState > 2) moveState = 0;
+    
+    if (moveState == 0)
+      setpoint = originalSetpoint;
+    else if (moveState == 1)
+      setpoint = originalSetpoint - movingAngleOffset;
+    else
+      setpoint = originalSetpoint + movingAngleOffset;
 }
 
 
